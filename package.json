@@ -1,0 +1,15 @@
+{
+  "name": "cna-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon ./server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "http": "^0.0.0",
+    "mongoose": "^5.9.1",
+    "socket.io": "^2.3.0"
+  }
+}
