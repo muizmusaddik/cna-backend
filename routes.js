@@ -24,7 +24,7 @@ class Routes {
 
     this.app.post('/share', async (req, res) => {
 
-      if (!req.body || !req.body.uuid) {
+      if (!req.body || !req.body.profiles || !req.body.profiles.uuid) {
         return res.status(402).json({ message: 'Invalid profile data' })
       }
 
