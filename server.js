@@ -12,7 +12,7 @@ const mongoUrl = 'mongodb+srv://root:InwN60093RBAqcG2@cna-cafz8.mongodb.net/test
 class Server {
   constructor() {
     this.port = process.env.PORT || 5000
-    this.host = 'localhost'
+    this.host = '0.0.0.0'
     this.app = express()
     this.http = http.Server(this.app)
     this.socket = socketio(this.http)
@@ -32,7 +32,7 @@ class Server {
   appExecute() {
     this.appConfig();
     this.includeRoutes()
-    this.app.listen(this.port, this.host, () => {
+    this.http.listen(this.port, this.host, () => {
       console.log(`Listening to http://${this.host}:${this.port}`)
     })
   }
