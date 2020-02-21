@@ -2,6 +2,7 @@
 
 const express = require('express')
 const http = require('http')
+const cors = require('cors')
 const mongoose = require('mongoose')
 const socketio = require('socket.io')
 
@@ -20,6 +21,7 @@ class Server {
   }
 
   appConfig() {
+    this.app.use(cors())
     this.app.use(express.json())
   }
 
