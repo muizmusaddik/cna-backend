@@ -11,7 +11,7 @@ const mongoUrl = 'mongodb+srv://root:InwN60093RBAqcG2@cna-cafz8.mongodb.net/test
 
 class Server {
   constructor() {
-    this.port = process.env.PORT || 3000
+    this.port = process.env.PORT || 5000
     this.host = 'localhost'
     this.app = express()
     this.http = http.Server(this.app)
