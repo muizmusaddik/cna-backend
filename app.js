@@ -32,7 +32,7 @@ class Server {
   appExecute() {
     this.appConfig();
     this.includeRoutes()
-    this.http.listen(this.port, this.host, () => {
+    this.app.listen(this.port, this.host, () => {
       console.log(`Listening to http://${this.host}:${this.port}`)
     })
   }
