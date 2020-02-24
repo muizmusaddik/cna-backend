@@ -24,6 +24,17 @@ class Routes {
     })
   }
 
+  getShareData(name) {
+    console.log('Received polling from', name)
+    const user = this.users.find(u => u.name === name)
+    console.log('user', user)
+    const profiles = await this.models.Customer.find({ sharedTo: name })
+    if (profiles.length) {
+      console.log('emitting to user', user.id)
+      this.io.to(user.id).emit('send-share-data', profiles)
+    }
+  }
+
   socketEvents() {
     this.io.on('connection', socket => {
       socket.on('username', user => {
@@ -34,7 +45,7 @@ class Routes {
           { ...currentUser, online: true, id: socket.id }
         ]
         this.io.emit('recipient-list', this.users, socket.id)
-        this.io.emit('get-share-data', user)
+        this.getShareData(user)
       })
 
       socket.on('send-share-data', async (data, fn) => {
@@ -64,7 +75,7 @@ class Routes {
           const sent = await this.models.Customer.create({ ...data, shared: false, sharedOn: new Date() })
           const receipent = this.users.find(u => u.name === sent.sharedTo)
           if (receipent && receipent.online) {
-            this.emit('get-share-data', sent.sharedTo)
+            this.getShareData(sent.sharedTo)
           }
 
           fn({ error: false })
@@ -74,16 +85,7 @@ class Routes {
         }
       })
 
-      socket.on('get-share-data', async name => {
-        console.log('Received polling from', name)
-        const user = this.users.find(u => u.name === name)
-        console.log('user', user)
-        const profiles = await this.models.Customer.find({ sharedTo: name })
-        if (profiles.length) {
-          console.log('emitting to user', user.id)
-          this.io.to(user.id).emit('send-share-data', profiles)
-        }
-      })
+      socket.on('get-share-data', name => this.getShareData(name))
 
       socket.on('disconnect', () => {
         console.log('User disconnected')
