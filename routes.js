@@ -7,6 +7,7 @@ class Routes {
     this.app = app
     this.io = socket
     this.db = db
+
     this.models = {
       Customer: this.db.model('Customer', CustomerSchema)
     }
@@ -18,33 +19,8 @@ class Routes {
   }
 
   appRoutes() {
-    this.app.get('/', (req, res) => {
-      res.json({ message: 'hello'})
-    })
-
-    this.app.post('/share', async (req, res) => {
-
-      if (!req.body || !req.body.profiles || !req.body.profiles.uuid) {
-        return res.status(402).json({ message: 'Invalid profile data' })
-      }
-
-      if (!req.body.sharedFrom) {
-        return res.status(402).json({ message: 'Undefined sender' })
-      }
-
-      if (!req.body.sharedTo) {
-        return res.status(402).json({ message: 'Undefined recipient' })
-      }
-
-      try {
-        console.log('Saving data ...')
-        await this.models.Customer.create({ ...req.body, shared: false, sharedOn: new Date() })
-        console.log('Done ...')
-      } catch (e) {
-        console.log(e)
-      }
-
-      res.json({ message: 'received' })
+    this.app.get('/health', (req, res) => {
+      res.json({ message: 'Application is healthy'})
     })
   }
 
@@ -57,10 +33,8 @@ class Routes {
           ...this.users.filter(u => u.name !== user),
           { ...currentUser, online: true, id: socket.id }
         ]
-        this.io.emit(
-          'recipient-list',
-          this.users,
-          socket.id)
+        this.io.emit('recipient-list', this.users, socket.id)
+        this.io.emit('get-share-data', user)
       })
 
       socket.on('send-share-data', async (data, fn) => {
@@ -77,7 +51,22 @@ class Routes {
         }
 
         try {
-          await this.models.Customer.create({ ...data, shared: false, sharedOn: new Date() })
+          const existing = await this.models.Customer.findOne({ 'profiles.uuid': data.profiles.uuid, sharedTo: data.sharedTo }).exec()
+          if (existing) {
+            return this.io.emit('error', { message: `Profile already shared to ${data.sharedTo}` })
+          }
+        } catch (e) {
+          console.log(e) // log this
+          return this.io.emit('error', { message: `Error validating profile with database` })
+        }
+
+        try {
+          const sent = await this.models.Customer.create({ ...data, shared: false, sharedOn: new Date() })
+          const receipent = this.users.find(u => u.name === sent.sharedTo)
+          if (receipent && receipent.online) {
+            this.emit('get-share-data', sent.sharedTo)
+          }
+
           fn({ error: false })
         } catch (e) {
           fn({ error: true })
