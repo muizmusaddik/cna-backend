@@ -24,7 +24,7 @@ class Routes {
     })
   }
 
-  getShareData(name) {
+  async getShareData(name) {
     console.log('Received polling from', name)
     const user = this.users.find(u => u.name === name)
     console.log('user', user)
