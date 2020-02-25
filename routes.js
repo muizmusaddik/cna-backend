@@ -11,7 +11,7 @@ class Routes {
     this.models = {
       Customer: this.db.model('Customer', CustomerSchema)
     }
-    this.users = [
+    this.users = [ // epp list goes here
       { name: 'Kit Keat', online: false, id: null },
       { name: 'Boyle', online: false, id: null },
       { name: 'Shamsudeen', online: false, id: null }
@@ -73,8 +73,8 @@ class Routes {
 
         try {
           const sent = await this.models.Customer.create({ ...data, shared: false, sharedOn: new Date() })
-          const receipent = this.users.find(u => u.name === sent.sharedTo)
-          if (receipent && receipent.online) {
+          const recipient = this.users.find(u => u.name === sent.sharedTo)
+          if (recipient && recipient.online) {
             this.getShareData(sent.sharedTo)
           }
 
@@ -87,8 +87,13 @@ class Routes {
 
       socket.on('get-share-data', name => this.getShareData(name))
 
-      socket.on('disconnect', () => {
+      socket.on('disconnect', user => {
         console.log('User disconnected')
+        const currentUser = this.users.find(u => u.name === user)
+        this.users = [
+          ...this.users.filter(u => u.name !== user),
+          { ...currentUser, online: false, id: null }
+        ]
       })
     })
   }
