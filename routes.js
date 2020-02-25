@@ -30,7 +30,7 @@ class Routes {
     if (profiles.length) {
       const ids = profiles.map(p => p._id)
       try {
-        await CustomerSchema.updateMany({ _id: { $in: ids }}, { shared: true })
+        await this.models.Customer.updateMany({ _id: { $in: ids }}, { shared: true })
         this.io.to(user.id).emit('send-share-data', profiles)
       } catch (e) {
         console.log(e) // Log this
