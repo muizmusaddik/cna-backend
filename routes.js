@@ -92,6 +92,7 @@ class Routes {
       socket.on('get-share-data', name => this.getShareData(name))
 
       socket.on('disconnect', user => {
+        console.log(`User ${user} disconnected`)
         const currentUser = this.users.find(u => u.name === user)
         this.users = [
           ...this.users.filter(u => u.name !== user),
