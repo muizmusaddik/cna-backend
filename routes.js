@@ -26,11 +26,11 @@ class Routes {
 
   async getShareData(name) {
     const user = this.users.find(u => u.name === name)
-    const profiles = await this.models.Customer.find({ sharedTo: name })
+    const profiles = await this.models.Customer.find({ shared: false, sharedTo: name })
     if (profiles.length) {
       const ids = profiles.map(p => p._id)
       try {
-        await this.models.Customer.updateMany({ _id: { $in: ids }}, { shared: true })
+        await this.models.Customer.updateMany({ _id: { $in: ids }}, { shared: true, sharedOn: new Date() })
         this.io.to(user.id).emit('send-share-data', profiles)
       } catch (e) {
         console.log(e) // Log this
@@ -76,7 +76,7 @@ class Routes {
         }
 
         try {
-          const sent = await this.models.Customer.create({ ...data, shared: false, sharedOn: new Date() })
+          const sent = await this.models.Customer.create({ ...data, shared: false, createdAt: new Date() })
           const recipient = this.users.find(u => u.name === sent.sharedTo)
           if (recipient && recipient.online) {
             this.getShareData(sent.sharedTo)
