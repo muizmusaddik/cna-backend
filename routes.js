@@ -25,13 +25,17 @@ class Routes {
   }
 
   async getShareData(name) {
-    console.log('Received polling from', name)
     const user = this.users.find(u => u.name === name)
-    console.log('user', user)
     const profiles = await this.models.Customer.find({ sharedTo: name })
     if (profiles.length) {
-      console.log('emitting to user', user.id)
-      this.io.to(user.id).emit('send-share-data', profiles)
+      const ids = profiles.map(p => p._id)
+      try {
+        await CustomerSchema.updateMany({ _id: { $in: ids }}, { shared: true })
+        this.io.to(user.id).emit('send-share-data', profiles)
+      } catch (e) {
+        console.log(e) // Log this
+        return this.io.emit('error', { message: `Error updating profiles status` })
+      }
     }
   }
 
@@ -88,7 +92,6 @@ class Routes {
       socket.on('get-share-data', name => this.getShareData(name))
 
       socket.on('disconnect', user => {
-        console.log('User disconnected')
         const currentUser = this.users.find(u => u.name === user)
         this.users = [
           ...this.users.filter(u => u.name !== user),
